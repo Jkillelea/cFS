@@ -57,3 +57,6 @@
 [submodule "apps/sc"]
 	path = apps/sc
 	url = https://github.com/nasa/SC.git
+[submodule "apps/libnmea"]
+	path = apps/libnmea
+	url = https://github.com/Jkillelea/nmealib-fork
