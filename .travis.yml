@@ -1,0 +1,30 @@
+dist: bionic
+sudo: required
+language:
+  - c
+compiler:
+  - gcc
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - cmake
+
+before_install:
+  - sudo apt-get install cppcheck
+
+script:
+  # Check versions
+  - cppcheck --version
+  # Setup standard build
+  - cp cfe/cmake/Makefile.sample Makefile
+  - cp -r cfe/cmake/sample_defs sample_defs
+  # Static code analysis
+  - cppcheck --force .
+  # Prep and build
+  - make prep
+  - make
+  - make install
+  # List cpu1 for core binary
+  - ls build/exe/cpu1/
