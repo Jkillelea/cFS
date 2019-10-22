@@ -60,3 +60,6 @@
 [submodule "apps/libnmea"]
 	path = apps/libnmea
 	url = https://github.com/Jkillelea/nmealib-fork
+[submodule "apps/gps_util_lib"]
+	path = apps/gps_util_lib
+	url = https://github.com/Jkillelea/cfs_gps_util_lib
