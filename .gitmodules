@@ -41,4 +41,22 @@
 [submodule "tools/tblCRCTool"]
 	path = tools/tblCRCTool
 	url = https://github.com/nasa/tblCRCTool.git
-        branch = master
+    branch = master
+[submodule "apps/gps_reader"]
+    path = apps/gps_reader
+    url = https://github.com/Jkillelea/cfs_gps_reader.git
+[submodule "apps/gps_printer"]
+    path = apps/gps_printer
+    url = https://github.com/Jkillelea/cfs_gps_printer.git
+[submodule "apps/gps_kalman"]
+	path = apps/gps_kalman
+	url = https://github.com/Jkillelea/cfs_gps_kalman.git
+[submodule "gps_datalogger"]
+	path = apps/gps_datalogger
+	url = https://github.com/Jkillelea/cfs_gps_datalogger.git
+[submodule "apps/sc"]
+	path = apps/sc
+	url = https://github.com/nasa/SC.git
+[submodule "apps/libnmea"]
+	path = apps/libnmea
+	url = https://github.com/Jkillelea/nmealib-fork
