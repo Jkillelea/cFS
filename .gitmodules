@@ -63,6 +63,3 @@
 [submodule "apps/gps_util_lib"]
 	path = apps/gps_util_lib
 	url = https://github.com/Jkillelea/cfs_gps_util_lib
-[submodule "apps/mpu6050"]
-	path = apps/mpu6050
-	url = https://github.com/Jkillelea/cfs_mpu6050
