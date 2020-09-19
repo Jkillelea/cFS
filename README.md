@@ -1,4 +1,7 @@
-Travis-CI: [![Build Status](https://travis-ci.com/nasa/cFS.svg)](https://travis-ci.com/nasa/cFS)
+[![Build Status](https://travis-ci.com/nasa/cFS.svg)](https://travis-ci.com/nasa/cFS)
+[![LGTM Alerts](https://img.shields.io/lgtm/alerts/github/nasa/cFS)](https://lgtm.com/projects/g/nasa/cFS/alerts/?mode=list)
+[![LGTM Grade](https://img.shields.io/lgtm/grade/python/github/nasa/cFS)](https://lgtm.com/projects/g/nasa/cFS/alerts/?mode=list)
+[![LGTM Grade](https://img.shields.io/lgtm/grade/cpp/github/nasa/cFS)](https://lgtm.com/projects/g/nasa/cFS/alerts/?mode=list)
 
 # Core Flight System - BUNDLE
 
@@ -8,35 +11,48 @@ This bundle has not been fully verified as an operational system, and is provide
 
 The cFS Framework is a core subset of cFS.  There are additional OSALs, PSPs, and tools as listed below available from a variety of sources.
 
+## References to Auto-generated Documentation
+  - cFE User's Guide: https://github.com/nasa/cFS/blob/gh-pages/cFE_Users_Guide.pdf
+  - OSAL User's Guide: https://github.com/nasa/cFS/blob/gh-pages/OSAL_Users_Guide.pdf
+
 ## Release Notes
 
-cFE 6.6.0a is released under the Apache 2.0 license, see [LICENSE](https://github.com/nasa/cFE/tree/master/LICENSE-18128-Apache-2_0.pdf).
- - The license covers cFE, PSP, framework apps, and framework tools as marked
+See [releases](https://github.com/nasa/cFS/releases) for release history and associated artifacts related to the cFS BUNDLE.
 
-OSAL 1.4.2a is released under the NOSA license, see [LICENSE](https://github.com/nasa/osal/blob/master/LICENSE)
+**Aquila: OFFICIAL RELEASE**:
+  - Released under Apache 2.0
+  - Inclueds cFE 6.7.0 (cFE, PSP, framework apps, and framework tools as marked) and OSAL 5.0.0
+
+**cFS 6.6.0a Suite: OFFICIAL RELEASE**:
+  - cFE 6.6.0a is released under Apache 2.0 license, see [LICENSE](https://github.com/nasa/cFE/blob/v6.6.0a/LICENSE-18128-Apache-2_0.pdf)
+  - OSAL 4.2.1a is released under the NOSA license, see [LICENSE](https://github.com/nasa/osal/blob/osal-4.2.1a/LICENSE)
+  - [Release notes](https://github.com/nasa/cFE/blob/v6.6.0a/docs/cFE_release_notes.md)
+  - [Version description document](https://github.com/nasa/cFE/blob/v6.6.0a/docs/cFE_6_6_0_version_description.md)
+  - [Test results](https://github.com/nasa/cFE/tree/v6.6.0a/test-and-ground/test-review-packages/Results)
 
 Other elements listed below are released under a varitey of licenses as detailed in their respective repositories.
 
-Additional release notes for the cFS Framework are found in [release notes](https://github.com/nasa/cFE/tree/master/docs/cFE_release_notes.md).  See the [version description document](https://github.com/nasa/cFE/tree/master/docs/cFE_6_6_0_version_description.md) for the full version description document.  Test results can be found in [test results](https://github.com/nasa/cFE/tree/master/test-and-ground/test-review-packages/Results).  This is a point release from major development work currently being performed on an internal repository.
-
 ## Known issues
 
-Version description document contains references to internal repositories and sourceforge, which is no longer in use.  Markdown document formats have not been updated for GitHub.
+Historical version description documents contain references to internal repositories and sourceforge, which is no longer in use.  Not all markdown documents have been updated for GitHub.
 
-The version description document details two build warnings in linux that will be resolved in the future.
-
-Major known issues (not noted in version description document):
-Unit test - the nominal os timer test occasionally fails on standard Linux systems (non-RTOS)
+See related repositories for current open issues.
 
 ## Major future work
 
-  - Certification framework including PSP and OSAL white box testing
-  - Open source automated build framework
-  - Unit test modernization/standardization
-  - Deployment quality of life improvements (configuration)
+  - Certification framework with automated build verification tests of framework requirements
+    - Executable on real/emulated/simulated/ or dockerized targets
+    - Add PSP coverage testing framework
+    - Add PSP and cFE functional testing framework for APIs
+    - Scrub OSAL coverage and functional tests 
+  - Open source automated build verification execution framework for emulated targets (likely docker based)
+  - Provide capability for mission customization of core services
+  - Deployment quality of life improvements (configuration, transition to CMake source selection vs compiler directives)
+  - Update OS support (VxWorks 7, RTEMS 5)
+  - Time services refactor
   - Documentation (updated tracability, APIs/ICDs, general update)
   - Symmetric multi-processing APIs
-  - Electronic Data Sheet integration
+  - Electronic Data Sheet integration option and improvements to packet layouts for portability/consistancy
   - Toolchain updates
 
 ## Getting Help
@@ -61,17 +77,13 @@ Copy in the default makefile and definitions:
     cp cfe/cmake/Makefile.sample Makefile
     cp -r cfe/cmake/sample_defs sample_defs
 
-If running on a standard linux build as a normal user, define OSAL_DEBUG_PERMISSIVE_MODE for best effort message queue depth and task priorities.
-
-    sed -i 's/undef OSAL_DEBUG_PERMISSIVE_MODE/define OSAL_DEBUG_PERMISSIVE_MODE/g' sample_defs/default_osconfig.h
-
 ## Build and Run
 
 The cFS Framework including sample applications will build and run on the pc-linux platform support package (should run on most Linux distributions), via the steps described in https://github.com/nasa/cFE/tree/master/cmake/README.md.  Quick-start is below:
 
-To prep, compile, and run (from cFS directory above):
+To prep, compile, and run on the host (from cFS directory above) as a normal user (best effort message queue depth and task priorities):
 
-    make prep
+    make SIMULATION=native prep
     make
     make install
     cd build/exe/cpu1/
@@ -79,18 +91,20 @@ To prep, compile, and run (from cFS directory above):
 
 Should see startup messages, and CFE_ES_Main entering OPERATIONAL state.  Note the code must be executed from the build/exe/cpu1 directory to find the startup script and shared objects.
 
+Note: The steps above are for a debug, permissive mode build and includes deprecated elements.  For a release build, recommendation is `make BUILDTYPE=release OMIT_DEPRECATED=true prep`.  Unit tests can be added with `ENABLE_UNIT_TESTS=true`, run with `make test`, and coverage reported with `make lcov`.
+
 ## Send commands, receive telemetry
 
-The cFS-GroundSystem tool can be used to send commands and receive telemetry (see https://github.com/nasa/cFS-GroundSystem/tree/master/Guide-GroundSystem.txt, the Guide-GroundSystem.txt).  Note it depends on PyQt4 and PyZMQ:
+The cFS-GroundSystem tool can be used to send commands and receive telemetry (see https://github.com/nasa/cFS-GroundSystem/tree/master/Guide-GroundSystem.txt, the Guide-GroundSystem.txt).  Note it depends on PyQt5 and PyZMQ:
 
-1. Install PyQt4 and PyZMQ on your system
+1. Install PyQt5 and PyZMQ on your system
 2. Compile cmdUtil and start the ground system executable
 
        cd tools/cFS-GroundSystem/Subsystems/cmdUtil
        make
        cd ../..
-       python GroundSystem.py
-    
+       python3 GroundSystem.py
+
 3. Select "Start Command System"
 4. Select "Enable Tlm"
 5. Enter IP address of system executing cFS, 127.0.0.1 if running locally
@@ -112,31 +126,33 @@ The following list is user submitted, and not CCB controlled.  They are released
   - Other Ground station software
     - TBD
   - Other Apps
+    - CS: Checksum application at https://github.com/nasa/CS
     - CF: CFDP application at https://github.com/nasa/CF
+    - CI: Command Ingest application at https://github.com/nasa/CFS_CI
+    - DS: Data Store application at https://github.com/nasa/DS
+    - FM: File Manager application at https://github.com/nasa/FM
     - HK: Housekeeping application at https://github.com/nasa/HK
+    - HS: Health and Safety application at https://github.com/nasa/HS
+    - LC: Limit Checker application at https://github.com/nasa/LC
     - MD: Memory Dwell application at https://github.com/nasa/MD
     - MM: Memory Manager application at https://github.com/nasa/MM
-    - LC: Limit Checker application at https://github.com/nasa/LC
-    - CS: Checksum application at https://github.com/nasa/CS
-    - FM: File Manager application at https://github.com/nasa/FM
     - SC: Stored Commands application at https://github.com/nasa/SC
-    - SCH: Scheduler application at https://github.com/nasa/SCH
-    - HS: Health and Safety application at https://github.com/nasa/HS
-    - DS: Data Store application at https://github.com/nasa/DS
     - SCA: Stored Command Absolute application at https://github.com/nasa/SCA
+    - SCH: Scheduler application at https://github.com/nasa/SCH
+    - TO: Telemetry Output application at https://github.com/nasa/CFS_TO
+    - Skeleton App: A bare-bones application to which you can add your business logic at https://github.com/nasa/skeleton_app 
   - Other Interfaces
     - SIL: Simulink Interface Layer at https://github.com/nasa/SIL
     - ECI: External Code Interface at https://github.com/nasa/ECI
   - Other Libraries
-    - cFS_LIB: at https://github.com/nasa/cfs_lib
     - cFS_IO_LIB: IO library at https://github.com/nasa/CFS_IO_LIB
+    - cFS_LIB: at https://github.com/nasa/cfs_lib
   - Other Tools
     - CCDD: Command and Data Dictionary Tool at https://github.com/nasa/CCDD
     - Perfutils-java: Java based performance analyzer for cFS at https://github.com/nasa/perfutils-java
-    - gen_msgids: Deprecated tool that prints ApIDs
     - gen_sch_tbl: Tool to generated SCH app tables
   - Other OSALs
     - TBD
   - Other PSPs
     - TBD
-
+  
