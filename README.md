@@ -5,15 +5,18 @@
 
 # Core Flight System - BUNDLE
 
-This repository is a bundle of submodules that make up the Core Flight System (cFS) framework.  Note the "lab" apps are intended as examples only, and enable this bundle to build, execute, receive commands, and send telemetry.  This is not a flight distribution, which is typically made up of the cFE, OSAL, PSP, and a selection of flight apps that coorespond to specific mission requirements.
+The Core Flight System (cFS) is a generic flight software architecture framework used on flagship spacecraft, human spacecraft, cubesats, and Raspberry Pi.  This repository is a bundle of submodules that make up the cFS framework.  Note the "lab" apps are intended as examples only, and enable this bundle to build, execute, receive commands, and send telemetry.  This is not a flight distribution, which is typically made up of the cFE, OSAL, PSP, and a selection of flight apps that correspond to specific mission requirements.
 
 This bundle has not been fully verified as an operational system, and is provided as a starting point vs an end product.  Testing of this bundle consists of building, executing, sending setup commands and verifying receipt of telemetry.  Unit testing is also run, but extensive analysis is not performed.  All verification and validation per mission requirements is the responsibility of the mission (although attempts are made in the cFS Framework to provide a testing framework to facilitate the process).
 
 The cFS Framework is a core subset of cFS.  There are additional OSALs, PSPs, and tools as listed below available from a variety of sources.
 
-## References to Auto-generated Documentation
+## References Documentation
   - cFE User's Guide: https://github.com/nasa/cFS/blob/gh-pages/cFE_Users_Guide.pdf
   - OSAL User's Guide: https://github.com/nasa/cFS/blob/gh-pages/OSAL_Users_Guide.pdf
+  - cFE App Developer's Guide: https://github.com/nasa/cFE/blob/main/docs/cFE%20Application%20Developers%20Guide.md
+  - Training documentation: https://ntrs.nasa.gov/citations/20205000691
+  - cFS Overview: https://cfs.gsfc.nasa.gov/cFS-OviewBGSlideDeck-ExportControl-Final.pdf
 
 ## Release Notes
 
@@ -21,7 +24,7 @@ See [releases](https://github.com/nasa/cFS/releases) for release history and ass
 
 **Aquila: OFFICIAL RELEASE**:
   - Released under Apache 2.0
-  - Inclueds cFE 6.7.0 (cFE, PSP, framework apps, and framework tools as marked) and OSAL 5.0.0
+  - Includes cFE 6.7.0 (cFE, PSP, framework apps, and framework tools as marked) and OSAL 5.0.0
 
 **cFS 6.6.0a Suite: OFFICIAL RELEASE**:
   - cFE 6.6.0a is released under Apache 2.0 license, see [LICENSE](https://github.com/nasa/cFE/blob/v6.6.0a/LICENSE-18128-Apache-2_0.pdf)
@@ -30,7 +33,7 @@ See [releases](https://github.com/nasa/cFS/releases) for release history and ass
   - [Version description document](https://github.com/nasa/cFE/blob/v6.6.0a/docs/cFE_6_6_0_version_description.md)
   - [Test results](https://github.com/nasa/cFE/tree/v6.6.0a/test-and-ground/test-review-packages/Results)
 
-Other elements listed below are released under a varitey of licenses as detailed in their respective repositories.
+Other elements listed below are released under a variety of licenses as detailed in their respective repositories.
 
 ## Known issues
 
@@ -40,19 +43,30 @@ See related repositories for current open issues.
 
 ## Major future work
 
+### Caelum (aka 7.0) Major release development plans (Targeting end of 2020 for release candidate)
+
   - Certification framework with automated build verification tests of framework requirements
     - Executable on real/emulated/simulated/ or dockerized targets
-    - Add PSP coverage testing framework
-    - Add PSP and cFE functional testing framework for APIs
-    - Scrub OSAL coverage and functional tests 
+    - Add PSP coverage testing framework (nasa/psp#184, nasa/psp#174)
+    - Add PSP and cFE functional testing framework for APIs  (nasa/cfe#779)
+    - Scrub OSAL coverage and functional tests
+    - Scrub cFE coverage tests
+    - Add cFE API functional tests
+    - NOTE: Command verification pending tool open source release
+  - Documentation (updated traceability, APIs/ICDs, general update)
+  - Framework for mission customization of core services
+    - Header customization support (nasa/cFE#726)
+  - Remove deprecated code
+  - Cmd/Tlm structure scrub for alignment/padding/consistency
+  - Library query and reporting and ES resource management (nasa/cFE#28, nasa/cFE#797)
+
+### Other (may not make 7.0)
   - Open source automated build verification execution framework for emulated targets (likely docker based)
-  - Provide capability for mission customization of core services
   - Deployment quality of life improvements (configuration, transition to CMake source selection vs compiler directives)
   - Update OS support (VxWorks 7, RTEMS 5)
   - Time services refactor
-  - Documentation (updated tracability, APIs/ICDs, general update)
   - Symmetric multi-processing APIs
-  - Electronic Data Sheet integration option and improvements to packet layouts for portability/consistancy
+  - Electronic Data Sheet integration option and improvements to packet layouts for portability/consistency
   - Toolchain updates
 
 ## Getting Help
@@ -65,7 +79,7 @@ Community email list subscription request: https://lists.nasa.gov/mailman/listin
 
 ## Setup
 
-To setup the cFS BUNDLE directly from the latest set of interoperable repositories:
+Ensure the following software are installed: Make, CMake, GCC, and Git.  To setup the cFS BUNDLE directly from the latest set of interoperable repositories:
 
     git clone https://github.com/nasa/cFS.git
     cd cFS
@@ -95,9 +109,10 @@ Note: The steps above are for a debug, permissive mode build and includes deprec
 
 ## Send commands, receive telemetry
 
-The cFS-GroundSystem tool can be used to send commands and receive telemetry (see https://github.com/nasa/cFS-GroundSystem/tree/master/Guide-GroundSystem.txt, the Guide-GroundSystem.txt).  Note it depends on PyQt5 and PyZMQ:
+The cFS-GroundSystem tool can be used to send commands and receive telemetry.  For details on using and setting up the Ground System, see the [Guide-GroundSystem](https://github.com/nasa/cFS-GroundSystem/blob/main/Guide-GroundSystem.md).  Note it depends on PyQt5 and PyZMQ:
 
-1. Install PyQt5 and PyZMQ on your system
+1. Install PyQt5 and PyZMQ on your system.  Some systems may also require installing libcanberra-gtk-module.
+       
 2. Compile cmdUtil and start the ground system executable
 
        cd tools/cFS-GroundSystem/Subsystems/cmdUtil
@@ -109,7 +124,7 @@ The cFS-GroundSystem tool can be used to send commands and receive telemetry (se
 4. Select "Enable Tlm"
 5. Enter IP address of system executing cFS, 127.0.0.1 if running locally
 
-Should see telemetry, can send noops and see command counters increment
+Should see telemetry, can send noops and see command counters increment.
 
 ## Compatible list of cFS apps
 
@@ -118,11 +133,11 @@ The following applications have been tested against this release:
 
 ## Other cFS related elements/tools/apps/distributions
 
-The following list is user submitted, and not CCB controlled.  They are released by various orgainizations, under various licenses.
+The following list is user submitted, and not CCB controlled.  They are released by various organizations, under various licenses.
 
   - Distributions
     - cFS-101: Virtual machine distribution at https://github.com/nasa/CFS-101
-    - OpenSatKit: Open source kit for satelite software at https://github.com/OpenSatKit/OpenSatKit
+    - OpenSatKit: Open source kit for satellite software at https://github.com/OpenSatKit/OpenSatKit
   - Other Ground station software
     - TBD
   - Other Apps
