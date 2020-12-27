@@ -49,7 +49,7 @@ int32 GPS_UTIL_LibInit(void);
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int32 GPS_UTIL_LibInit(void)
 {
-    OS_printf ("GPS_UTIL Lib Initialized. Version %d.%d.%d",
+    OS_printf ("GPS_UTIL Lib Initialized. Version %d.%d.%d\n",
             GPS_UTIL_VERSION_MAJOR, GPS_UTIL_VERSION_MINOR, GPS_UTIL_VERSION_POINT);
     return CFE_SUCCESS;
 } /* End GPS_UTIL_LibInit */
