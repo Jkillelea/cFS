@@ -1,0 +1,52 @@
+name: "CodeQL Analysis"
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+env:
+  SIMULATION: native
+  ENABLE_UNIT_TESTS: true
+  OMIT_DEPRECATED: true
+  BUILDTYPE: release
+
+jobs:
+
+  CodeQL-Build:
+    runs-on: ubuntu-18.04
+    timeout-minutes: 15
+
+    steps:
+      # Checks out a copy of your repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          repository: nasa/cFS
+          submodules: true
+
+      - name: Check versions
+        run: |
+           git log -1 --pretty=oneline
+           git submodule
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: c
+          config-file: ./.github/codeql/codeql-config.yml
+
+      # Setup the build system
+      - name: Copy sample_defs
+        run: |
+          cp ./cfe/cmake/Makefile.sample Makefile
+          cp -r ./cfe/cmake/sample_defs sample_defs
+
+      # Setup the build system
+      - name: Make Install
+        run: make
+
+      # Run CodeQL
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
