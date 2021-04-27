@@ -3,17 +3,30 @@ name: Documentation and Guides
 # Run every time a new commit pushed to main or for pull requests
 on:
   push:
-    branches:
-      - main
-
   pull_request:
 
 env:
   SIMULATION: native
 
 jobs:
+  #Checks for duplicate actions. Skips push actions if there is a matching or duplicate pull-request action. 
+  checks-for-duplicates:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          concurrent_skipping: 'same_content'
+          skip_after_successful_duplicate: 'true'
+          do_not_skip: '["pull_request", "workflow_dispatch", "schedule"]'
 
   build-docs:
+    #Continue if checks-for-duplicates found no duplicates. Always runs for pull-requests.
+    needs: checks-for-duplicates
+    if: ${{ needs.checks-for-duplicates.outputs.should_skip != 'true' }}
     name: cFE Documentation
     runs-on: ubuntu-18.04
 
@@ -59,6 +72,8 @@ jobs:
 
   build-usersguide:
     # Name the Job
+    needs: checks-for-duplicates
+    if: ${{ needs.checks-for-duplicates.outputs.should_skip != 'true' }}
     name: Users Guide
     # Set the type of machine to run on
     runs-on: ubuntu-18.04
@@ -114,12 +129,12 @@ jobs:
           fi
 
       - name: PDF generation installs
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'main')}}
         run: |
           sudo apt-get install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 
       - name: PDF generation
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'main')}}
         run: |
           set -x
           mkdir deploy
@@ -130,7 +145,7 @@ jobs:
           # pandoc CFE_Users_Guide.pdf -t gfm
 
       - name: Deploy
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'main')}}
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -141,6 +156,8 @@ jobs:
 
   build-osalguide:
     # Name the Job
+    needs: checks-for-duplicates
+    if: ${{ needs.checks-for-duplicates.outputs.should_skip != 'true' }}    
     name: Osal Guide
     # Set the type of machine to run on
     runs-on: ubuntu-18.04
@@ -197,12 +214,12 @@ jobs:
           fi
 
       - name: PDF generation installs
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'main')}}
         run: |
           sudo apt-get install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 
       - name: PDF generation
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'main')}}
         run: |
           mkdir deploy
           cd ./build/doc/osalguide/latex
@@ -212,7 +229,7 @@ jobs:
           # pandoc CFE_Users_Guide.pdf -t gfm
 
       - name: Deploy
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'main')}}
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -220,4 +237,3 @@ jobs:
           FOLDER: deploy
           CLEAN: false
           SINGLE_COMMIT: true
-
