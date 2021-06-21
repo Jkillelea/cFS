@@ -1,32 +1,93 @@
 #!/bin/bash
+# set -v
 
-set -v
+IMAGE_SOURCE="ubuntu:x"
+CONTAINER_NAME="crossbuilder"
+SNAPSHOT_NAME="buildtoolsinstalled"
 
-# clean up old container (if exists)
-lxc stop rpi-cross
-lxc delete rpi-cross
-rm -rf ./cross-build-files/
+# clean up files
+rm -rf ./crossbuildfiles.zip
 
-# launch new container
-lxc launch ubuntu:x rpi-cross
+container_exists() {
+    lxc info $CONTAINER_NAME
+    if [ $? -eq 0 ]; then
+        exists=1
+    else
+        exists=0
+    fi
+}
 
-# install needed packages
-lxc exec rpi-cross -- apt update
-lxc exec rpi-cross -- apt upgrade -y --fix-missing
-lxc exec rpi-cross -- apt autoremove -y
-lxc exec rpi-cross -- apt update
-lxc exec rpi-cross -- apt install -y gcc-5-arm-linux-gnueabihf build-essential make cmake unzip tree
+is_running() {
+    info=$(lxc info $CONTAINER_NAME | grep Status)
+    if [ "$info" = "Status: Stopped" ]; then
+        running=0
+    else
+        running=1
+    fi
+}
+
+remove_container() {
+    # clean up old container
+    lxc stop $CONTAINER_NAME
+    lxc delete $CONTAINER_NAME
+}
+
+launch_container() {
+    # launch new container
+    echo "Launching"
+    lxc launch ubuntu:x $CONTAINER_NAME
+
+    # install needed packages
+    echo "Updating and installing packages"
+    lxc exec $CONTAINER_NAME -- apt update
+    lxc exec $CONTAINER_NAME -- apt upgrade -y --fix-missing
+    lxc exec $CONTAINER_NAME -- apt autoremove -y
+    lxc exec $CONTAINER_NAME -- apt update
+    lxc exec $CONTAINER_NAME -- apt install -y gcc-5-arm-linux-gnueabihf build-essential make cmake
+
+    echo "Snapshotting for future use"
+    lxc snapshot $CONTAINER_NAME $SNAPSHOT_NAME
+}
+
+container_exists
+if [ $exists -eq 0 ]; then
+    echo "Container doesn't exist, starting"
+    launch_container
+else
+    echo "Container exists, restoring"
+    is_running
+    if [ $running -eq 1 ]; then
+        echo "Stopping"
+        lxc stop $CONTAINER_NAME
+    fi
+    echo "Restoring snapshot"
+    lxc restore $CONTAINER_NAME $SNAPSHOT_NAME
+    echo "Starting"
+    lxc start $CONTAINER_NAME
+fi
+
+set -e
 
 # push source files to container
 make distclean
-zip -r sourcesfiles.zip ../cFS/
-lxc file push sourcesfiles.zip rpi-cross/root/
-lxc exec rpi-cross -- unzip sourcesfiles.zip
+
+echo "Packaging files"
+pushd ../
+tar cf cFS.tar cFS
+lxc file push cFS.tar $CONTAINER_NAME/root/
+rm cFS.tar
+popd
+
+echo "Unpackaging files"
+lxc exec $CONTAINER_NAME -- tar xf cFS.tar
 
 # compile
-lxc exec rpi-cross -- ./cFS/cross-build.sh
-lxc file pull -r rpi-cross/root/cFS/build cross-build-files
+echo "Compiling in container"
+lxc exec $CONTAINER_NAME -- ./cFS/cross-build.sh
+
+echo "Pulling files"
+lxc file pull -r $CONTAINER_NAME/root/cFS/build .
 
 # cleanup
-lxc stop rpi-cross
-lxc delete rpi-cross
+echo "Stopping container"
+lxc stop $CONTAINER_NAME
