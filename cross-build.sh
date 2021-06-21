@@ -18,3 +18,4 @@ make distclean
 make config=debug prep
 make -j$NCPUS
 make install
+zip -r crossbuildfiles.zip $BUILD_DIR
