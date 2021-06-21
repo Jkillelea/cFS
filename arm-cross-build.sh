@@ -1,5 +1,5 @@
 #!/bin/bash
-set -v
+# set -v
 
 IMAGE_SOURCE="ubuntu:x"
 CONTAINER_NAME="crossbuilder"
@@ -43,7 +43,7 @@ launch_container() {
     lxc exec $CONTAINER_NAME -- apt upgrade -y --fix-missing
     lxc exec $CONTAINER_NAME -- apt autoremove -y
     lxc exec $CONTAINER_NAME -- apt update
-    lxc exec $CONTAINER_NAME -- apt install -y gcc-5-arm-linux-gnueabihf build-essential make cmake zip unzip tree
+    lxc exec $CONTAINER_NAME -- apt install -y gcc-5-arm-linux-gnueabihf build-essential make cmake
 
     echo "Snapshotting for future use"
     lxc snapshot $CONTAINER_NAME $SNAPSHOT_NAME
@@ -66,22 +66,28 @@ else
     lxc start $CONTAINER_NAME
 fi
 
+set -e
+
 # push source files to container
 make distclean
 
+echo "Packaging files"
 pushd ../
-zip -r cFS.zip cFS/
-lxc file push cFS.zip $CONTAINER_NAME/root/
-rm cFS.zip
+tar cf cFS.tar cFS
+lxc file push cFS.tar $CONTAINER_NAME/root/
+rm cFS.tar
 popd
 
-lxc exec $CONTAINER_NAME -- unzip cFS.zip
+echo "Unpackaging files"
+lxc exec $CONTAINER_NAME -- tar xf cFS.tar
 
 # compile
+echo "Compiling in container"
 lxc exec $CONTAINER_NAME -- ./cFS/cross-build.sh
-lxc exec $CONTAINER_NAME -- zip -r crossbuildfiles.zip ./cFS/build/
-lxc file pull -r $CONTAINER_NAME/root/crossbuildfiles.zip .
-# lxc file pull -r $CONTAINER_NAME/root/cFS/build cross-build-files
+
+echo "Pulling files"
+lxc file pull -r $CONTAINER_NAME/root/cFS/build .
 
 # cleanup
+echo "Stopping container"
 lxc stop $CONTAINER_NAME

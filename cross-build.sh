@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# Setup
-set -v
-set -e
-
 cd "$(dirname "$0")"
 
 BUILD_DIR="$(pwd)/build/"
@@ -18,4 +14,5 @@ make distclean
 make config=debug prep
 make -j$NCPUS
 make install
-zip -r crossbuildfiles.zip $BUILD_DIR
+
+# zip -r crossbuildfiles.zip $BUILD_DIR 1>/dev/null
