@@ -1,0 +1,2 @@
+export MISSIONCONFIG="native"
+
