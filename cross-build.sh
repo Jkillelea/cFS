@@ -2,17 +2,11 @@
 
 cd "$(dirname "$0")"
 
-BUILD_DIR="$(pwd)/build/"
-EXE_DIR="$BUILD_DIR/exe/cpu1"
-NCPUS="$(nproc)"
+source arm-build-vars.sh
 
-echo $BUILD_DIR
-echo $EXE_DIR
-echo $NCPUS
+BUILDDIR="$HOME/$MISSIONCONFIG"
 
-make distclean
-make config=debug prep
-make -j$NCPUS
-make install
-
-# zip -r crossbuildfiles.zip $BUILD_DIR 1>/dev/null
+make O=$BUILDDIR distclean
+make O=$BUILDDIR config=debug prep
+make O=$BUILDDIR -j$(nproc)
+make O=$BUILDDIR install
