@@ -4,10 +4,7 @@
 source arm-build-vars.sh
 
 container_exists() {
-    # lxc info $CONTAINER_NAME
-    # if [ $? -eq 0 ]; then
-
-    if [ -z "lxc list -c n --format csv | grep $CONTAINER_NAME" ]; then
+    if [ -z "$(lxc list -c n --format csv | grep $CONTAINER_NAME)" ]; then
         exists=0
     else
         exists=1
@@ -61,28 +58,30 @@ launch_container() {
 
 cd "$(dirname $0)"
 
-# container_exists
-# if [ $exists -eq 0 ]; then
-#     echo "Container doesn't exist, starting"
-#     launch_container
-# else
-#     echo "Container exists, restoring"
-#     is_running
-#     if [ $running -eq 1 ]; then
-#         echo "Stopping"
-#         lxc stop $CONTAINER_NAME
-#     fi
-#     echo "Restoring snapshot"
-#     lxc restore $CONTAINER_NAME $SNAPSHOT_NAME
-#     echo "Starting"
-#     lxc start $CONTAINER_NAME
-# fi
+# remove_container
+# 
+# set -e
+# 
+# launch_container
 
-remove_container
+container_exists
+if [ $exists -eq 0 ]; then
+    echo "Container doesn't exist, starting"
+    launch_container
+else
+    echo "Container exists, restoring"
+    is_running
+    if [ $running -eq 1 ]; then
+        echo "Stopping"
+        lxc stop $CONTAINER_NAME
+    fi
+    echo "Restoring snapshot"
+    lxc restore $CONTAINER_NAME $SNAPSHOT_NAME
+    echo "Starting"
+    lxc start $CONTAINER_NAME
+fi
 
 set -e
-
-launch_container
 
 # push source files to container
 make distclean
@@ -92,7 +91,9 @@ echo "Compiling in container"
 lxc exec $CONTAINER_NAME -- ./cFS/cross-build.sh
 
 echo "Pulling files"
-rm -r "$MISSIONCONFIG"
+if [ -d "$MISSIONCONFIG" ]; then
+    rm -r "$MISSIONCONFIG"
+fi
 lxc file pull -r $CONTAINER_NAME/root/$MISSIONCONFIG .
 
 # cleanup
