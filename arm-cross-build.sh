@@ -26,28 +26,45 @@ remove_container() {
     lxc delete $CONTAINER_NAME
 }
 
+add_packages() {
+
+    lxc exec $CONTAINER_NAME -- apt update
+    while [ $? != 0 ]; do
+        lxc exec $CONTAINER_NAME -- apt update
+        sleep 3
+    done
+
+    lxc exec $CONTAINER_NAME -- apt install -y gcc-5-arm-linux-gnueabihf build-essential make cmake
+    while [ $? != 0 ]; do
+        lxc exec $CONTAINER_NAME -- apt update
+        lxc exec $CONTAINER_NAME -- apt install -y gcc-5-arm-linux-gnueabihf build-essential make cmake --fix-missing
+        sleep 10
+    done
+
+    lxc exec $CONTAINER_NAME -- apt upgrade -y
+    while [ $? != 0 ]; do
+        lxc exec $CONTAINER_NAME -- apt update
+        sleep 1
+        lxc exec $CONTAINER_NAME -- apt upgrade -y --fix-missing
+        sleep 1
+    done
+
+    lxc exec $CONTAINER_NAME -- apt autoremove -y
+
+}
+
 launch_container() {
     # launch new container
     echo "Launching"
     lxc launch ubuntu:x $CONTAINER_NAME
 
+    # Wait for network interface to update
+    echo "Waiting for networ interfaces to come up..."
+    lxc exec $CONTAINER_NAME -- bash -c 'while [ "$(systemctl is-system-running 2>/dev/null)" != "running" ] && [ "$(systemctl is-system-running 2>/dev/null)" != "degraded" ]; do :; done'
+
     # install needed packages
     echo "Updating and installing packages"
-
-    # Wait for network interface to update
-    lxc exec $CONTAINER_NAME -- apt update
-    while [ "$?" -ne "0" ]; do
-        lxc exec $CONTAINER_NAME -- apt update
-    done
-
-    lxc exec $CONTAINER_NAME -- apt upgrade -y
-    lxc exec $CONTAINER_NAME -- apt autoremove -y
-    lxc exec $CONTAINER_NAME -- apt update
-
-    lxc exec $CONTAINER_NAME -- apt install --fix-missing -y gcc-5-arm-linux-gnueabihf build-essential make cmake
-    while [ "$?" -ne "0" ]; do
-        lxc exec $CONTAINER_NAME -- apt install --fix-missing -y gcc-5-arm-linux-gnueabihf build-essential make cmake
-    done
+    add_packages
 
     echo "mapping source files into container"
     lxc config device add $CONTAINER_NAME source_files_disk disk source="$(pwd)" path=/root/cFS
@@ -57,12 +74,6 @@ launch_container() {
 }
 
 cd "$(dirname $0)"
-
-# remove_container
-# 
-# set -e
-# 
-# launch_container
 
 container_exists
 if [ $exists -eq 0 ]; then
